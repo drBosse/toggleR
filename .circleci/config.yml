@@ -14,12 +14,6 @@ jobs:
             ./version.sh
 
       - run:
-          name: git log
-          command: | 
-            cd toggleR 
-            git log --oneline --decorate --graph
-
-      - run:
           name: Build toggleR
           command: docker run -v $PWD:/toggleR -w /toggleR rocker/tidyverse R CMD build toggleR
       
