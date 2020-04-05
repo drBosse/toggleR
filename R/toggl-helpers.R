@@ -128,6 +128,7 @@ get.toggl.v2.group.details <- function(toggl_token, workspace_id, group, since =
 #' @export
 get.toggl.group.data <- function(toggl_token, workspace_id, group, since = Sys.Date() - 7, until = Sys.Date(),  verbose = FALSE) {
   page <- 1
+  data.response <- data.frame()
 
   if (verbose) {
     print(paste("Token:", toggl_token))
@@ -142,12 +143,11 @@ get.toggl.group.data <- function(toggl_token, workspace_id, group, since = Sys.D
     if (json.response$status_code == 200) {
       response <- fromJSON(content(json.response, "text", encoding = 'UTF-8'))
       if (length(response$data) > 0) {
+        data.response <- rbind(data.response, response$data)
         if (page == 1) {
-          data.response <- data.frame(response$data)
           print(paste('Fetching', response$total_count, 'entries in', 1 + (response$total_count %/% response$per_page), 'pages from toggl'))
           cat(page)
         } else {
-          data.response <- rbind(data.response, response$data)
           cat(paste('.', page, sep = ''))
         }
       } else {
