@@ -1,4 +1,4 @@
-FROM rocker/tidyverse:3.6.1
+FROM rocker/tidyverse:3.6.3
 
 ARG DOCKER_USER
 
