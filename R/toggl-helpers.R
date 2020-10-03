@@ -127,8 +127,10 @@ get.toggl.v2.group.details <- function(toggl_token, workspace_id, group, since =
 #' @family get.toggl
 #' @export
 get.toggl.group.data <- function(toggl_token, workspace_id, group, since = Sys.Date() - 7, until = Sys.Date(),  verbose = FALSE) {
-  page <- 1
   data.response <- data.frame()
+  start.date <- since
+  batch.size <- 100
+  batch <- 1
 
   if (verbose) {
     print(paste("Token:", toggl_token))
@@ -137,32 +139,46 @@ get.toggl.group.data <- function(toggl_token, workspace_id, group, since = Sys.D
     print(paste("Since:", since))
     print(paste("Until:", until))
   }
-  not.done <- TRUE
-  while (not.done) {
-    json.response <- get.toggl.v2.group.details(toggl_token, workspace_id, group, since = since, until = until, page = page)
-    if (json.response$status_code == 200) {
-      response <- fromJSON(content(json.response, "text", encoding = 'UTF-8'))
-      if (length(response$data) > 0) {
-        data.response <- rbind(data.response, response$data)
-        if (page == 1) {
-          print(paste('Fetching', response$total_count, 'entries in', 1 + (response$total_count %/% response$per_page), 'pages from toggl'))
-          cat(page)
+  while (start.date < until) {
+
+    end.date <- start.date + (batch.size - 1)
+    if (end.date > until) {
+      end.date <- until
+    }
+
+    print(paste("Fetching batch number: ", batch))
+    print(paste("Range: ", start.date, " - ", end.date))
+
+    not.done <- TRUE
+    page <- 1
+    while (not.done) {
+      json.response <- get.toggl.v2.group.details(toggl_token, workspace_id, group, since = start.date, until = end.date, page = page)
+      if (json.response$status_code == 200) {
+        response <- fromJSON(content(json.response, "text", encoding = 'UTF-8'))
+        if (length(response$data) > 0) {
+          data.response <- rbind(data.response, response$data)
+          if (page == 1) {
+            print(paste('Fetching', response$total_count, 'entries in', 1 + (response$total_count %/% response$per_page), 'pages from toggl'))
+            cat(page)
+          } else {
+            cat(paste('.', page, sep = ''))
+          }
         } else {
-          cat(paste('.', page, sep = ''))
+          print(" OK")
+          not.done <- FALSE
         }
       } else {
-        print(" OK")
         not.done <- FALSE
+        print(" ERROR")
+        print(json.response)
       }
-    } else {
-      not.done <- FALSE
-      print(" ERROR")
-      print(json.response)
+      page <- page + 1
+      if (page %% 10 == 0) {
+        Sys.sleep(1)
+      }
     }
-    page <- page + 1
-    if (page %% 10 == 0) {
-      Sys.sleep(1)
-    }
+  start.date <- start.date + batch.size
+  batch <- batch + 1
   }
   return(data.response)
 }
