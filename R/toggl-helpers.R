@@ -13,7 +13,7 @@ get.toggl.v8 <- function(toggl_token, workspace_id, what, verbose = FALSE) {
   username <- toggl_token
   password <- "api_token"
 
-  base <- "https://toggl.com/api"
+  base <- "https://api.track.toggl.com/api"
   endpoint <- "v8/workspaces"
 
   call <- paste(base, endpoint, workspace_id, what, sep = "/")
